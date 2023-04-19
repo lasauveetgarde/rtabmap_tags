@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Print on the file tag_bundle1.png (with GIMP: set size in Image Settings to 160x240mm) -->
+    <!-- Definition of the tag bundle is tags.yaml, make sure the camera is calibrated or adjust thesize of the tag if needed -->
+    <!-- The TF published by apriltag_ros should match the point cloud created by the camera -->
+    <!-- Change Optimizer/Strategy below between 1 (g2o) and 2 (GTSAM), and
+    landmark_angular_variance between 0.005 (optimize rotation) and 9999 (optimize only tag's XYZ) -->
+
+    <arg name="april_view" default="false"/>
+    <arg name="camera_frame_id" default="camera_color_optical_frame" />
+    <arg name="rgb_topic" default="/camera/color/image_raw" />
+    <arg name="camera_info_topic" default="/camera/color/camera_info" />
+
+    <!-- Set parameters -->
+    <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tag_settings.yaml" ns="apriltag_ros_continuous_node" />
+    <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tags.yaml" ns="apriltag_ros_continuous_node" />
+
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
+        clear_params="true" output="screen">
+        <remap from="image_rect" to="$(arg rgb_topic)" />
+        <remap from="camera_info" to="$(arg camera_info_topic)" />
+
+        <param name="camera_frame" type="str" value="$(arg camera_frame_id)" />
+        <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
+    </node>
+
+      <!-- RealSense D435i RGB-D on -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="align_depth" value="true" />
+        <arg name="unite_imu_method" value="copy" />
+        <arg name="enable_gyro" value="true" />
+        <arg name="enable_accel" value="true" />
+        <arg name="filters" value="pointcloud" />
+
+    </include>
+
+    <!-- IMU filter-->
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" args="_use_mag:=false _publish_tf:=false _world_frame:=enu /imu/data_raw:=/camera/imu /imu/data:=/rtabmap/imu" />
+
+    <node if="$(arg april_view)" pkg="rviz" type="rviz" name="rviz" args="-d $(find rtabmap_tags)/launch/config/rviz/april_tags_view.rviz" />
+    <include unless="$(arg april_view)" file="$(find rtabmap_tags)/launch/rtabmap_HandHeldMapping.launch">
+        <arg name="rviz" value="true" />
+        <arg name="rtabmapviz" value="true" />
+        <arg name="tag_angular_variance" value="0.005" />
+    </include>
+
+
+    <!-- <include file="$(find rtabmap_launch)/launch/rtabmap.launch">
+        <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
+        <arg name="rgb_topic" value="/camera/color/image_raw" />
+        <arg name="camera_info_topic" value="/camera/color/camera_info" />
+        <arg name="rviz" value="true" />
+        <arg name="rtabmap_viz" value="true" />
+        <arg name="args" value="-d -Optimizer/Strategy 1" />
+        <arg name="tag_angular_variance" value="9999" />
+    </include> -->
+</launch>

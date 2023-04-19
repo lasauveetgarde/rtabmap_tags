@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!--http://wiki.ros.org/rtabmap_ros/Tutorials/HandHeldMapping-->
+
+    <!-- Select localization or mapping mode -->
+    <arg name="loc" default="false" />
+    <arg name="map" default="true" />
+
+    <!-- Select visualization -->
+    <arg name="rviz" default="false" />
+    <arg name="rtabmapviz" default="true" />
+    <arg name="tag_angular_variance" default="9999" />
+
+  
+    <!-- Mapping mode -->
+    <group if="$(arg map)">
+        <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+            <arg name="rtabmap_args" value="--delete_db_on_start --Optimizer/GravitySigma 0.3" />
+            <arg name="rviz" value="$(arg rviz)" />
+            <arg name="rtabmapviz" value="$(arg rtabmapviz)" />
+            <arg name="tag_angular_variance" default="$(arg tag_angular_variance)" />
+
+            <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
+            <arg name="rgb_topic" value="/camera/color/image_raw" />
+            <arg name="camera_info_topic" value="/camera/color/camera_info" />
+            <arg name="approx_sync" value="false" />
+            <arg name="wait_imu_to_init" value="true" />
+            <arg name="imu_topic" value="/rtabmap/imu" />
+        </include>
+    </group>
+
+    <!-- Localization mode -->
+    <group if="$(arg loc)">
+        <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+            <arg name="rtabmap_args" value="--Optimizer/GravitySigma 0.3" />
+            <arg name="localization" value="true" />
+            <arg name="rviz" value="$(arg rviz)" />
+            <arg name="rtabmapviz" value="$(arg rtabmapviz)" />
+
+            <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
+            <arg name="rgb_topic" value="/camera/color/image_raw" />
+            <arg name="camera_info_topic" value="/camera/color/camera_info" />
+            <arg name="approx_sync" value="false" />
+            <arg name="wait_imu_to_init" value="true" />
+            <arg name="imu_topic" value="/rtabmap/imu" />
+        </include>
+    </group>
+</launch>
