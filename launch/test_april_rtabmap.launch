@@ -11,17 +11,18 @@
     <arg name="rgb_topic" default="/camera/color/image_raw" />
     <arg name="camera_info_topic" default="/camera/color/camera_info" />
 
-    <!-- Set parameters -->
-    <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tag_settings.yaml" ns="apriltag_ros_continuous_node" />
-    <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tags.yaml" ns="apriltag_ros_continuous_node" />
 
-    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
+
+    <node if="false" pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
         clear_params="true" output="screen">
         <remap from="image_rect" to="$(arg rgb_topic)" />
         <remap from="camera_info" to="$(arg camera_info_topic)" />
 
         <param name="camera_frame" type="str" value="$(arg camera_frame_id)" />
         <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
+        <!-- Set parameters -->
+        <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tag_settings.yaml"/>
+        <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tags.yaml"/>
     </node>
 
       <!-- RealSense D435i RGB-D on -->
@@ -41,7 +42,7 @@
     <include unless="$(arg april_view)" file="$(find rtabmap_tags)/launch/rtabmap_HandHeldMapping.launch">
         <arg name="rviz" value="true" />
         <arg name="rtabmapviz" value="true" />
-        <arg name="tag_angular_variance" value="0.005" />
+        <arg name="tag_angular_variance" value="9999" />
     </include>
 
 

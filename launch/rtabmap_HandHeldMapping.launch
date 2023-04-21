@@ -3,13 +3,14 @@
     <!--http://wiki.ros.org/rtabmap_ros/Tutorials/HandHeldMapping-->
 
     <!-- Select localization or mapping mode -->
-    <arg name="loc" default="false" />
-    <arg name="map" default="true" />
+    <arg name="map" default="false" />
 
     <!-- Select visualization -->
     <arg name="rviz" default="false" />
     <arg name="rtabmapviz" default="true" />
-    <arg name="tag_angular_variance" default="9999" />
+    <arg name="tag_angular_variance" default="0.005" />
+    <!-- <arg name="tag_angular_variance" default="9999" /> -->
+
 
   
     <!-- Mapping mode -->
@@ -19,7 +20,6 @@
             <arg name="rviz" value="$(arg rviz)" />
             <arg name="rtabmapviz" value="$(arg rtabmapviz)" />
             <arg name="tag_angular_variance" default="$(arg tag_angular_variance)" />
-
             <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
             <arg name="rgb_topic" value="/camera/color/image_raw" />
             <arg name="camera_info_topic" value="/camera/color/camera_info" />
@@ -30,13 +30,14 @@
     </group>
 
     <!-- Localization mode -->
-    <group if="$(arg loc)">
+    <group unless="$(arg map)">
         <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
             <arg name="rtabmap_args" value="--Optimizer/GravitySigma 0.3" />
             <arg name="localization" value="true" />
             <arg name="rviz" value="$(arg rviz)" />
             <arg name="rtabmapviz" value="$(arg rtabmapviz)" />
-
+            <arg name="tag_angular_variance" default="$(arg tag_angular_variance)" />
+ 
             <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
             <arg name="rgb_topic" value="/camera/color/image_raw" />
             <arg name="camera_info_topic" value="/camera/color/camera_info" />
