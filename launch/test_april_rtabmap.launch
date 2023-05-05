@@ -6,14 +6,14 @@
     <!-- Change Optimizer/Strategy below between 1 (g2o) and 2 (GTSAM), and
     landmark_angular_variance between 0.005 (optimize rotation) and 9999 (optimize only tag's XYZ) -->
 
-    <arg name="april_view" default="false"/>
+    <arg name="april_view" default="true"/>
     <arg name="camera_frame_id" default="camera_color_optical_frame" />
     <arg name="rgb_topic" default="/camera/color/image_raw" />
     <arg name="camera_info_topic" default="/camera/color/camera_info" />
 
 
 
-    <node if="false" pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
         clear_params="true" output="screen">
         <remap from="image_rect" to="$(arg rgb_topic)" />
         <remap from="camera_info" to="$(arg camera_info_topic)" />

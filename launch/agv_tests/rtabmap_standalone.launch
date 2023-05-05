@@ -1,0 +1,148 @@
+<launch>
+    <arg name="localization" default="true" />
+    <arg name="rtabmapviz" default="true" />
+    <arg name="rgbd_odom" default="true" />
+
+
+    <arg name="rgb_topic" default="/front_camera/color/image_raw" />
+    <arg name="depth_topic" default="/front_camera/aligned_depth_to_color/image_raw" />
+    <arg name="camera_info_topic" default="/front_camera/color/camera_info" />
+    <arg name="rgbd_topic" default="/front_camera/rgbd_image" />
+    <arg name="compressed" default="false"/>
+    <arg name="imu_topic" default="/front_camera/imu/filtered" />
+    <arg name="odom_topic" default="/agv/vo" />
+    <arg name="camera_frame_id" default="front_camera_color_optical_frame"/>
+    <!-- <arg name="odom_topic" default="/agv/wheel_odom" /> -->
+    <!-- <arg name="odom_topic" default="/agv/odometry/filtered" /> -->
+
+
+
+    <!-- <arg name="FeatureType" default="6" />
+    <arg name="nn" default="3" /> -->
+
+    <!-- <arg name="database_path" default="$(find agv_maps)/maps/3d_maps/new_map.db" /> -->
+    <arg name="database_path" default="" />
+
+    <arg if="$(arg localization)" name="args" default="" />
+    <arg unless="$(arg localization)" name="args" default="--delete_db_on_start" />
+    <arg name="wait_for_transform" default="true"/>
+    <arg name="DetectionRate" default="1" />
+
+    
+    <group ns="rtabmap">
+        <node if="$(arg rgbd_odom)" pkg="rtabmap_odom" type="rgbd_odometry" name="visual_odometry" args="$(arg args)">
+            <param name="subscribe_rgbd" type="bool" value="true" />
+            <remap from="rgbd_image" to="$(arg rgbd_topic)" />
+            <remap from="odom"            to="/agv/vo"/>
+            <remap from="imu" to="$(arg imu_topic)" />
+            <!-- <remap from="odom" to="$(arg odom_topic)" /> -->
+
+            <param name="frame_id" type="string" value="base_footprint" />
+
+            <param name="publish_tf"             type="bool"   value="true"/>
+            <param name="publish_null_when_lost" type="bool"   value="true"/>
+            <!-- <param name="guess_from_tf"          type="bool"   value="true"/> -->
+
+            <param name="Reg/Force3DoF" type="bool" value="true" />
+            <param name="Odom/FillInfoData"      type="string" value="true"/>
+            <param name="Odom/ResetCountdown"    type="string" value="1"/>
+            <!-- <param name="Vis/FeatureType"        type="string" value="6"/> -->
+            <param name="OdomF2M/MaxSize"        type="string" value="1000"/>
+        </node>
+
+
+        <node name="rtabmap" pkg="rtabmap_slam" type="rtabmap" output="screen" args="$(arg args)">
+            <param name="frame_id" type="string" value="base_footprint" />
+            <param name="odom_frame_id" type="string" value="odom" />
+
+            <param name="database_path" type="string" value="$(arg database_path)" />
+
+            <param name="subscribe_depth" type="bool" value="false" />
+            <param name="subscribe_rgbd" type="bool" value="true" />
+            <param name="subscribe_scan" type="bool" value="true" />
+            
+            <!-- inputs -->
+            <!-- <remap from="imu" to="$(arg imu_topic)" /> -->
+            <remap from="odom" to="$(arg odom_topic)" />
+            <remap from="scan" to="/scan" />
+            <remap from="rgbd_image" to="$(arg rgbd_topic)" />
+            <remap from="tag_detections"         to="/tag_detections"/>
+            <param name="queue_size" type="int" value="10" />
+            <!-- agv doesn't provide covariances, we use TF to get odom and we fix the covariance --> 
+            <!-- <param name="odom_tf_linear_variance"  type="double" value="0.0001"/> -->
+	        <!-- <param name="odom_tf_angular_variance" type="double" value="0.00005"/> -->
+
+              <!-- output -->
+  	        <remap from="grid_map" to="/map"/>
+
+            <!-- RTAB-Map's parameters -->
+            <!-- <param name="Kp/DetectorStrategy"    type="string" value="6"/> use same features as odom -->
+            <param name="RGBD/NeighborLinkRefining" type="string" value="true" /> <!-- Correct odometry using the input lidar topic using ICP.-->
+            <param name="RGBD/ProximityBySpace" type="string" value="false" /> <!-- Find local loop closures based on the robot position in the map.-->
+            <param name="RGBD/AngularUpdate" type="string" value="0.1" />
+            <param name="RGBD/LinearUpdate" type="string" value="0.1" />
+            <param name="RGBD/OptimizeFromGraphEnd" type="string" value="false" /> <!--/map -> /odom transform -->
+            <param name="RGBD/OptimizeMaxError" type="string" value="0" /> <!-- if Positve reject any loop closure causing large errors (>3x link's covariance) in the map -->
+            <param name="RGBD/MaxOdomCacheSize" type="string" value="0" /> <!-- Maximum odometry cache size-->
+            <param name="RGBD/ProximityPathMaxNeighbors" type="string" value="10 " /> <!-- disabled lidar localiztaion-->
+            <param name="Grid/FromDepth" type="string" value="false" /> <!-- occupancy grid from lidar -->
+            <param name="Reg/Force3DoF" type="string" value="true" />
+            <param name="Vis/MinInliers" type="string" value="10"/> <!-- up to 12-->
+            <param name="Reg/Strategy" type="string" value="1" /> <!-- 0=Vis, 1=Icp, 2=VisIcp]            -->
+            <param name="Rtabmap/DetectionRate" type="string" value="$(arg DetectionRate)" />
+
+            <param name="landmark_angular_variance"  type="double" value="0.0000001"/> <!-- >=9999 means ignore rotation in optimization, when rotation estimation of the tag is not reliable -->
+            <param name="landmark_linear_variance"   type="double" value="0.0001" />
+
+
+            <!-- ICP parameters -->
+            <param name="Icp/VoxelSize" type="string" value="0.05" />
+            <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1" />
+
+            <!-- Grid -->
+            <param name="Grid/3D" value="false" />
+            <param name="Grid/CellSize" value="0.1" />
+            <!-- <param name="Grid/MaxGroundHeight" type="string" value="0.0" />
+            <param name="Grid/MaxObstacleHeight" type="string" value="1.5" /> -->
+            <param name="Grid/NormalsSegmentation" type="string" value="false" />
+            <!-- <param name="Grid/RangeMax" value="30.0" /> -->
+            <!-- <param name="Grid/RangeMin" value="~.0" /> -->
+            <!-- <param name="GridGlobal/MinSize" type="string" value="250" /> -->
+
+            <!-- localization mode -->
+            <param if="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="false" />
+            <param unless="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="true" />
+            <param name="Mem/InitWMWithAllNodes" type="string" value="$(arg localization)" />
+
+        </node>
+
+        <!-- Visualisation RTAB-Map -->
+        <node if="$(arg rtabmapviz)" pkg="rtabmap_viz" type="rtabmap_viz" name="rtabmapviz" args="-d $(find rtabmap_ros)/launch/config/rgbd_gui.ini" output="screen">
+            <param name="subscribe_depth" type="bool" value="false" />
+            <param name="subscribe_rgbd" type="bool" value="true" />
+            <param name="subscribe_scan" type="bool" value="true" />~
+            <param name="subscribe_odom_info" type="bool" value="true" />
+            <param name="frame_id" type="string" value="base_footprint" />
+            <param name="wait_for_transform" type="bool" value="$(arg wait_for_transform)" />
+            <param name="approx_sync" type="bool" value="true" />
+            <remap from="rgbd_image" to="$(arg rgbd_topic)" />
+            <remap from="scan" to="/scan" />
+            <remap from="odom" to="$(arg odom_topic)" />
+        </node>
+    </group>
+
+
+   <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
+        clear_params="true" output="screen">
+        <remap from="image_rect" to="$(arg rgb_topic)" />
+        <remap from="camera_info" to="$(arg camera_info_topic)" />
+
+        <param name="camera_frame" type="str" value="$(arg camera_frame_id)" />
+        <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
+        <!-- Set parameters -->
+        <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tag_settings.yaml"/>
+        <rosparam command="load" file="$(find rtabmap_tags)/launch/config/tags.yaml"/>
+    </node>
+    <!-- <node name ='rviz' type="rviz" pkg = "rviz" args= " -d $(find agv_software)/config/rviz/rtabmap_full.rviz"/>  -->
+
+</launch>

@@ -3,7 +3,7 @@
     <!--http://wiki.ros.org/rtabmap_ros/Tutorials/HandHeldMapping-->
 
     <!-- Select localization or mapping mode -->
-    <arg name="map" default="false" />
+    <arg name="map" default="true" />
 
     <!-- Select visualization -->
     <arg name="rviz" default="false" />
