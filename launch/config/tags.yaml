@@ -26,6 +26,7 @@ standalone_tags:
     {id: 88,   size: 0.16},
     {id: 131,   size: 0.16},
     {id: 152,   size: 0.16},
+    {id: 177,   size: 0.44},
     {id: 199,   size: 0.16},
     {id: 270,   size: 0.16},
     {id: 355,   size: 0.16}
