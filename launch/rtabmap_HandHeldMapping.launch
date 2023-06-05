@@ -6,12 +6,10 @@
     <arg name="map" default="true" />
 
     <!-- Select visualization -->
-    <arg name="rviz" default="false" />
+    <arg name="rviz" default="true" />
     <arg name="rtabmapviz" default="true" />
     <arg name="tag_angular_variance" default="0.005" />
     <!-- <arg name="tag_angular_variance" default="9999" /> -->
-
-
   
     <!-- Mapping mode -->
     <group if="$(arg map)">

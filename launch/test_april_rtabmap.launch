@@ -11,13 +11,10 @@
     <arg name="rgb_topic" default="/camera/color/image_raw" />
     <arg name="camera_info_topic" default="/camera/color/camera_info" />
 
-
-
     <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node"
         clear_params="true" output="screen">
         <remap from="image_rect" to="$(arg rgb_topic)" />
         <remap from="camera_info" to="$(arg camera_info_topic)" />
-
         <param name="camera_frame" type="str" value="$(arg camera_frame_id)" />
         <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
         <!-- Set parameters -->
@@ -39,12 +36,12 @@
     <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" args="_use_mag:=false _publish_tf:=false _world_frame:=enu /imu/data_raw:=/camera/imu /imu/data:=/rtabmap/imu" />
 
     <node if="$(arg april_view)" pkg="rviz" type="rviz" name="rviz" args="-d $(find rtabmap_tags)/launch/config/rviz/april_tags_view.rviz" />
+    
     <include unless="$(arg april_view)" file="$(find rtabmap_tags)/launch/rtabmap_HandHeldMapping.launch">
         <arg name="rviz" value="true" />
         <arg name="rtabmapviz" value="true" />
         <arg name="tag_angular_variance" value="9999" />
     </include>
-
 
     <!-- <include file="$(find rtabmap_launch)/launch/rtabmap.launch">
         <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw" />
